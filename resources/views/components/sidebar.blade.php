@@ -80,7 +80,7 @@
         </div>
 
         <div class="sidebar-nav-item">
-            <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Citas')">
+            <a href="{{ route('appointments.index') }}" class="sidebar-nav-link {{ request()->routeIs('appointments.*') ? 'active' : '' }}">
                 <i class="fas fa-calendar-alt"></i>
                 <span class="sidebar-text">Citas</span>
             </a>

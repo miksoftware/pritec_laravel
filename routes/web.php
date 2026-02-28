@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleTypeController;
 use App\Http\Controllers\VehicleSectionController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ExpertiseController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\MigrationController;
@@ -99,4 +100,12 @@ Route::middleware('auth')->group(function () {
     // Migration (admin only)
     Route::get('/migration', [MigrationController::class, 'index'])->name('migration.index');
     Route::post('/migration/process', [MigrationController::class, 'process'])->name('migration.process');
+
+    // Appointments (Citas)
+    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+    Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+    Route::post('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
+    Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::get('/appointments/search-clients', [AppointmentController::class, 'searchClients'])->name('appointments.search-clients');
+    Route::post('/appointments/store-client', [AppointmentController::class, 'storeClient'])->name('appointments.store-client');
 });
