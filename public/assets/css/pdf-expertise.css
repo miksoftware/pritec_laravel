@@ -1,0 +1,538 @@
+/**
+ * Estilos para PDF de Peritaje - Pritec (Laravel)
+ * Migrado del formato original preservando el diseño exacto
+ */
+
+/* VARIABLES Y RESET */
+:root {
+    --main-color: #fff280;
+    --gray-color: #d8d8d8;
+    --danger-color: #ff3933;
+    --warning-color: #ff8a33;
+    --success-color: #36d048;
+    --caution-color: #ffff33;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 13px;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* IMPRESIÓN */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    @page {
+        size: legal;
+        margin: 1cm 0.8cm;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+
+    html,
+    body {
+        font-size: 12px;
+    }
+
+    .page {
+        page-break-after: always;
+        min-height: auto;
+    }
+
+    .page:last-child {
+        page-break-after: auto;
+    }
+
+    .imagen-llantas {
+        max-height: 180px;
+    }
+
+    .grid-fotografias {
+        break-inside: avoid;
+    }
+
+    .contenedor-imagen {
+        height: 180px;
+    }
+
+    .seccion-firmas {
+        break-inside: avoid;
+    }
+}
+
+/* TIPOGRAFÍA */
+p {
+    margin: 0;
+    font-size: 14px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+/* PÁGINAS */
+.page {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background: white;
+    min-height: 35.56cm;
+    justify-content: space-between;
+}
+
+@media screen {
+    .page {
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-width: 26cm;
+        min-height: 35.56cm;
+        margin: 1rem auto 2rem auto;
+    }
+}
+
+.page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* PLACA */
+.plate {
+    background-color: var(--gray-color);
+    border: 1px solid var(--main-color);
+    text-align: center;
+    width: fit-content;
+    padding: 2px 1.5rem;
+    border-radius: 4px;
+    margin: auto;
+    letter-spacing: 3px;
+    font-weight: bold;
+    font-size: 2rem;
+    -webkit-text-stroke: .8px var(--main-color);
+}
+
+/* FONDOS Y BORDES */
+.yellow-background {
+    background: var(--main-color);
+    border-radius: 8px;
+    text-wrap: nowrap;
+    font-size: 1rem;
+}
+
+.simple-border {
+    border: 1px solid var(--main-color);
+}
+
+.rounded {
+    border-radius: 8px;
+}
+
+/* TÍTULOS */
+.sub-title {
+    text-align: center;
+    margin: 1rem auto;
+    width: fit-content;
+    padding: .2rem 1.5rem;
+}
+
+.sub-title-vertical {
+    text-align: center;
+    margin: 0 1rem;
+    width: fit-content;
+    padding: 1.5rem .2rem;
+    writing-mode: sideways-lr;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vertical-icon-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.vertical-icon-text svg {
+    flex-shrink: 0;
+}
+
+.seccion-titulo-con-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.seccion-titulo-con-icono svg {
+    flex-shrink: 0;
+}
+
+/* FORMULARIOS */
+.label {
+    min-width: 40%;
+    width: fit-content;
+    padding: .2rem .5rem;
+    align-self: center;
+}
+
+.input {
+    width: 50%;
+    padding: .2rem .5rem;
+    border: 1px var(--main-color) solid;
+    border-radius: 8px;
+    font-size: 10px;
+}
+
+.remarks {
+    border: 1px solid var(--main-color);
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    height: 50px;
+    font-size: .8rem;
+}
+
+/* FOOTER */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #666;
+    padding: 0.5rem 0;
+    border-top: 1px solid #ddd;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+.footer-text {
+    font-weight: normal;
+}
+
+.footer-page {
+    font-weight: bold;
+}
+
+/* ESTADOS */
+.estado-peligroso {
+    background-color: var(--danger-color) !important;
+    color: white;
+}
+
+.estado-precaucion {
+    background-color: var(--warning-color) !important;
+    color: white;
+}
+
+.estado-seguro {
+    background-color: var(--caution-color) !important;
+    color: #333;
+}
+
+.estado-nuevas {
+    background-color: var(--success-color) !important;
+    color: white;
+}
+
+/* TABLAS */
+.tabla-llantas {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-llantas th {
+    background-color: var(--main-color);
+    padding: 0.3rem 0.5rem;
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    border: 1px solid var(--main-color);
+}
+
+.tabla-llantas td {
+    padding: 0.3rem 0.5rem;
+    font-size: 9px;
+    border: 1px solid var(--main-color);
+    text-align: center;
+}
+
+.imagen-llantas {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+}
+
+/* FOTOGRAFÍAS */
+.descripcion-fotografica {
+    font-size: 0.75rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: normal;
+}
+
+.grid-fotografias {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.contenedor-imagen {
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--main-color);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+}
+
+.imagen-fijacion {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.contenedor-vacio {
+    background-color: #f0f0f0;
+}
+
+.placeholder-imagen {
+    color: #999;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.prueba-ruta {
+    border: 1px solid var(--main-color);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    min-height: 80px;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+}
+
+/* FIRMAS */
+.seccion-firmas {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.contenedor-firmas {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.firma-izquierda,
+.firma-derecha {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contenedor-firma-mecanico {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.firma-mecanico {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.titulo-firma {
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+}
+
+.linea-firma {
+    border-bottom: 2px solid #000;
+    margin: 2rem 0 0.5rem 0;
+    min-height: 60px;
+}
+
+.campo-cc {
+    font-size: 0.85rem;
+    margin: 0;
+    text-align: left;
+}
+
+/* AVISO LEGAL */
+.aviso-legal {
+    background-color: #f9f9f9;
+    border: 1px solid var(--main-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.aviso-legal p {
+    font-size: 0.7rem;
+    line-height: 1.4;
+    text-align: justify;
+    margin: 0;
+}
+
+.aviso-legal strong {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+/* UTILIDADES */
+.d-flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+.gap-4 {
+    gap: 1.5rem;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.my-2 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.mb-0 {
+    margin-bottom: 0;
+}
+
+.mb-3 {
+    margin-bottom: 1rem;
+}
+
+.me-2 {
+    margin-right: 0.5rem;
+}
+
+.me-3 {
+    margin-right: 1rem;
+}
+
+.ms-4 {
+    margin-left: 1.5rem;
+}
+
+.p-2 {
+    padding: 0.5rem;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* BOTONES */
+.btn-print {
+    background-color: #FFD700;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.btn-print:hover {
+    background-color: #e6c200;
+}
+
+.btn-close-pdf {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.btn-close-pdf:hover {
+    background-color: #d32f2f;
+}
+
+.action-buttons {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
