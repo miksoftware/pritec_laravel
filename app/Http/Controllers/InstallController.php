@@ -110,9 +110,10 @@ class InstallController extends Controller
             // 7. Mark as installed
             file_put_contents(storage_path('installed'), date('Y-m-d H:i:s'));
 
-            // 8. Optimize for production
-            Artisan::call('config:cache');
-            Artisan::call('route:cache');
+            // 8. Clear caches for clean start
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
 
             return redirect('/install')->with('success', true);
 
