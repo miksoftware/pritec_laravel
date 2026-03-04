@@ -68,7 +68,7 @@ body {
     }
 
     .contenedor-imagen {
-        height: 180px;
+        height: 140px;
     }
 
     .seccion-firmas {
@@ -311,7 +311,7 @@ h3 {
 
 .contenedor-imagen {
     width: 100%;
-    height: 200px;
+    height: 150px;
     border: 1px solid var(--main-color);
     border-radius: 4px;
     overflow: hidden;
