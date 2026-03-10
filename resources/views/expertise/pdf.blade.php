@@ -52,7 +52,7 @@
                 <!-- Encabezado -->
                 <section class="d-flex" style="gap: 1rem; align-items: flex-end;">
                     <div style="width: 160px; min-width: 260px; display: flex; align-items: flex-end; justify-content: center;">
-                        <img src="{{ asset('assets/img/pritec.jpeg') }}" style="width: 90%; height: 90%; object-fit: contain; border-radius: 4px;" alt="Pritec Logo" onerror="this.style.display='none'">
+                        <img src="{{ asset('assets/img/pritec.jpeg') }}" style="width: 83%; height: 90%; object-fit: contain; border-radius: 4px;" alt="Pritec Logo" onerror="this.style.display='none'">
                     </div>
                     <div class="d-flex flex-column" style="flex: 1;">
                         <h1 class="text-left">SALA TÉCNICA EN AUTOMOTORES</h1>
