@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/expertise/{expertise}/step/{step}/save', [ExpertiseController::class, 'saveStep'])->name('expertise.save-step');
     Route::post('/expertise/{expertise}/complete', [ExpertiseController::class, 'complete'])->name('expertise.complete');
     Route::get('/expertise/{expertise}/pdf', [ExpertiseController::class, 'generatePdf'])->name('expertise.pdf');
+    Route::delete('/expertise/photo/{photo}', [ExpertiseController::class, 'deletePhoto'])->name('expertise.delete-photo');
     Route::get('/expertise/{expertise}', [ExpertiseController::class, 'show'])->name('expertise.show');
     Route::delete('/expertise/{expertise}', [ExpertiseController::class, 'destroy'])->name('expertise.destroy');
 

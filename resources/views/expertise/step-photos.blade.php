@@ -28,9 +28,12 @@
 
                 <div id="photoPreview" class="row g-3 mb-4">
                     @foreach($photos as $photo)
-                    <div class="col-md-3 col-6">
-                        <div class="card h-100">
+                    <div class="col-md-3 col-6" id="existingPhoto_{{ $photo->id }}">
+                        <div class="card h-100 position-relative">
                             <img src="{{ asset($photo->ruta) }}" class="card-img-top" style="height:150px; object-fit:cover;">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="deleteExistingPhoto({{ $photo->id }})" style="border-radius: 50%; width: 28px; height: 28px; padding: 0;">
+                                <i class="fas fa-times" style="font-size: 0.7rem;"></i>
+                            </button>
                             <div class="card-body p-2 text-center">
                                 <small class="text-muted">{{ $photo->nombre_original }}</small>
                             </div>
@@ -89,6 +92,27 @@ function showPreviews() {
             newPreview.appendChild(div);
         };
         reader.readAsDataURL(file);
+    });
+}
+
+function deleteExistingPhoto(photoId) {
+    Swal.fire({
+        title: '¿Eliminar esta foto?', icon: 'warning', showCancelButton: true,
+        confirmButtonColor: '#e74c3c', confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar',
+        background: '#1a2332', color: '#fff'
+    }).then(result => {
+        if (result.isConfirmed) {
+            fetch('/expertise/photo/' + photoId, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('existingPhoto_' + photoId).remove();
+                }
+            });
+        }
     });
 }
 

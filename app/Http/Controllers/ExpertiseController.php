@@ -375,50 +375,47 @@ class ExpertiseController extends Controller
     {
         $files = $request->file('fotos', []);
 
-        DB::transaction(function () use ($expertise, $files) {
-            // Delete existing photos
-            $existingPhotos = $expertise->photos;
-            foreach ($existingPhotos as $photo) {
-                $fullPath = public_path($photo->ruta);
-                if (file_exists($fullPath)) {
-                    unlink($fullPath);
-                }
+        // Filter only valid uploaded files
+        $newFiles = [];
+        foreach ($files as $file) {
+            if ($file && $file->isValid()) {
+                $newFiles[] = $file;
             }
-            $expertise->photos()->delete();
+        }
 
-            // Upload new photos
+        DB::transaction(function () use ($expertise, $newFiles) {
             $uploadDir = 'uploads/expertises/' . $expertise->id;
             $fullUploadDir = public_path($uploadDir);
             if (!is_dir($fullUploadDir)) {
                 mkdir($fullUploadDir, 0755, true);
             }
 
-            $photoCount = 0;
-            foreach ($files as $index => $file) {
-                if ($file && $file->isValid()) {
-                    // Capture metadata BEFORE move (temp file is deleted after move)
-                    $originalName = $file->getClientOriginalName();
-                    $extension = $file->getClientOriginalExtension();
-                    $fileSize = $file->getSize() ?? 0;
-                    $savedName = 'foto_' . ($index + 1) . '_' . time() . '.' . $extension;
+            // Get current max order
+            $maxOrder = $expertise->photos()->max('orden') ?? 0;
 
-                    $file->move($fullUploadDir, $savedName);
+            // Only add new photos, keep existing ones
+            foreach ($newFiles as $file) {
+                $maxOrder++;
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $fileSize = $file->getSize() ?? 0;
+                $savedName = 'foto_' . $maxOrder . '_' . time() . '.' . $extension;
 
-                    ExpertisePhoto::create([
-                        'expertise_id' => $expertise->id,
-                        'nombre_original' => $originalName,
-                        'nombre_guardado' => $savedName,
-                        'ruta' => $uploadDir . '/' . $savedName,
-                        'extension' => $extension,
-                        'size' => $fileSize,
-                        'orden' => $index + 1,
-                    ]);
-                    $photoCount++;
-                }
+                $file->move($fullUploadDir, $savedName);
+
+                ExpertisePhoto::create([
+                    'expertise_id' => $expertise->id,
+                    'nombre_original' => $originalName,
+                    'nombre_guardado' => $savedName,
+                    'ruta' => $uploadDir . '/' . $savedName,
+                    'extension' => $extension,
+                    'size' => $fileSize,
+                    'orden' => $maxOrder,
+                ]);
             }
 
             $expertise->update([
-                'total_fotos' => $photoCount,
+                'total_fotos' => $expertise->photos()->count(),
                 'current_step' => max($expertise->current_step, 11),
                 'status' => 'in_progress',
             ]);
@@ -593,6 +590,23 @@ class ExpertiseController extends Controller
     // ═══════════════════════════════════════════
     //  GENERATE PDF — Formato imprimible
     // ═══════════════════════════════════════════
+
+    public function deletePhoto(ExpertisePhoto $photo)
+    {
+        $fullPath = public_path($photo->ruta);
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+
+        $expertiseId = $photo->expertise_id;
+        $photo->delete();
+
+        // Update photo count
+        $count = ExpertisePhoto::where('expertise_id', $expertiseId)->count();
+        Expertise::where('id', $expertiseId)->update(['total_fotos' => $count]);
+
+        return response()->json(['success' => true, 'message' => 'Foto eliminada.']);
+    }
 
     public function generatePdf(Expertise $expertise)
     {
