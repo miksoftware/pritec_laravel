@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\VehicleType;
 use App\Models\VehicleSection;
 use App\Models\VehiclePiece;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -688,11 +689,30 @@ class ExpertiseController extends Controller
             'estado_nivel_aceite_motor' => 'Nivel aceite motor',
         ];
 
+        $phone1 = SystemSetting::getValue('contact_phone_1', '3132049245');
+        $phone2 = SystemSetting::getValue('contact_phone_2', '3158928492');
+        $defaultPhone = SystemSetting::getValue('contact_default_phone', '1');
+        $phonesDisplay = $phone1 . ($phone2 ? '-' . $phone2 : '');
+        $whatsappPhone = $defaultPhone === '2' && $phone2 ? $phone2 : $phone1;
+
+        $company = [
+            'name' => SystemSetting::getValue('company_name', 'SALA TÉCNICA EN AUTOMOTORES'),
+            'subtitle' => SystemSetting::getValue('company_subtitle', 'CERTIFICACIÓN TÉCNICA EN IDENTIFICACIÓN DE AUTOMOTORES'),
+            'address' => SystemSetting::getValue('company_address', 'Carrera 16 No. 18-197 Barrio Tenerife'),
+            'phones' => $phonesDisplay,
+            'phone_1' => $phone1,
+            'phone_2' => $phone2,
+            'whatsapp_phone' => $whatsappPhone,
+            'web' => SystemSetting::getValue('company_web', 'peritos.pritec.co'),
+            'description' => SystemSetting::getValue('company_description', 'Peritos e inspecciones técnicas vehiculares Neiva-Huila'),
+        ];
+
         return view('expertise.pdf', compact(
             'expertise', 'photos',
             'carroceria', 'estructura', 'chasis',
             'campos_tren_motriz', 'campos_liquidos', 'campos_motor',
-            'campos_interior', 'campos_fugas', 'campos_estado_componentes'
+            'campos_interior', 'campos_fugas', 'campos_estado_componentes',
+            'company'
         ));
     }
 

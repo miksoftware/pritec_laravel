@@ -11,6 +11,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ExpertiseController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\MigrationController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 // Installer routes (no auth, no install check)
@@ -97,6 +98,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/expertise-ajax/search-vehicle-types', [ExpertiseController::class, 'searchVehicleTypes'])->name('expertise.search-vehicle-types');
     Route::get('/expertise-ajax/get-pieces', [ExpertiseController::class, 'getPieces'])->name('expertise.get-pieces');
     Route::get('/expertise-ajax/get-concepts', [ExpertiseController::class, 'getConcepts'])->name('expertise.get-concepts');
+
+    // Settings (Configuración)
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
     // Migration (admin only)
     Route::get('/migration', [MigrationController::class, 'index'])->name('migration.index');

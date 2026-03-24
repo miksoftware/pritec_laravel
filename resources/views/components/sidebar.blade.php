@@ -89,7 +89,7 @@
         <div class="sidebar-nav-section sidebar-text">Sistema</div>
 
         <div class="sidebar-nav-item">
-            <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Configuración')">
+            <a href="{{ route('settings.index') }}" class="sidebar-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                 <i class="fas fa-cog"></i>
                 <span class="sidebar-text">Configuración</span>
             </a>
