@@ -26,40 +26,56 @@ class ExpertiseController extends Controller
     {
         $search = $request->get('search', '');
         $month = $request->get('month', '');
+        $status = $request->get('status', 'all');
 
-        // Peritajes en progreso del usuario
-        $inProgress = Expertise::with(['client', 'vehicleType'])
-            ->inProgress()
-            ->where('user_id', Auth::id())
-            ->orderByDesc('updated_at')
-            ->get();
-
-        // Peritajes completados
-        $query = Expertise::with(['client', 'vehicleType'])
-            ->completed()
+        $query = Expertise::with(['client', 'vehicleType', 'user'])
             ->withCount(['inspections', 'photos']);
 
+        // Filtro por estado
+        if ($status === 'completed') {
+            $query->completed();
+        } elseif ($status === 'in_progress') {
+            $query->inProgress();
+        }
+
+        // Filtro de búsqueda por texto
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('service_number', 'like', "%{$search}%")
                   ->orWhere('placa', 'like', "%{$search}%")
                   ->orWhere('marca', 'like', "%{$search}%")
+                  ->orWhere('linea', 'like', "%{$search}%")
                   ->orWhere('codigo', 'like', "%{$search}%")
                   ->orWhereHas('client', function ($cq) use ($search) {
                       $cq->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('identification_number', 'like', "%{$search}%");
                   });
             });
         }
 
+        // Filtro por mes (año-mes ej: 2026-06 o 2026-07 en service_date o created_at)
         if ($month) {
-            $query->whereRaw("DATE_FORMAT(service_date, '%Y-%m') = ?", [$month]);
+            $query->where(function ($q) use ($month) {
+                $q->whereRaw("DATE_FORMAT(service_date, '%Y-%m') = ?", [$month])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$month]);
+            });
         }
 
-        $expertises = $query->orderByDesc('created_at')->paginate(20);
+        $expertises = $query->orderByDesc('service_date')
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->withQueryString();
+
         $statistics = Expertise::getStatistics();
 
-        return view('expertise.index', compact('expertises', 'inProgress', 'statistics', 'search', 'month'));
+        $statusCounts = [
+            'all' => Expertise::count(),
+            'in_progress' => Expertise::inProgress()->count(),
+            'completed' => Expertise::completed()->count(),
+        ];
+
+        return view('expertise.index', compact('expertises', 'statistics', 'statusCounts', 'search', 'month', 'status'));
     }
 
     // ═══════════════════════════════════════════

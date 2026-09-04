@@ -242,15 +242,17 @@ class Expertise extends Model
 
     public static function getStatistics(): array
     {
-        $total = static::completed()->count();
-        $thisMonth = static::completed()
-            ->whereMonth('service_date', now()->month)
-            ->whereYear('service_date', now()->year)
-            ->count();
+        $total = static::count();
+        $completed = static::completed()->count();
+        $inProgress = static::inProgress()->count();
+        $thisMonth = static::where(function ($q) {
+            $q->whereMonth('service_date', now()->month)
+              ->whereYear('service_date', now()->year);
+        })->count();
         $totalInspections = ExpertiseInspection::count();
         $totalPhotos = ExpertisePhoto::count();
 
-        return compact('total', 'thisMonth', 'totalInspections', 'totalPhotos');
+        return compact('total', 'completed', 'inProgress', 'thisMonth', 'totalInspections', 'totalPhotos');
     }
 
     // ───── Step Navigation Helpers ─────
