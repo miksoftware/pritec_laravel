@@ -102,8 +102,17 @@
     @endforeach
 
     <!-- Step 6: Tires -->
+    @php
+        $tiresVals = $expertise->is_moto
+            ? array_filter([$expertise->llanta_anterior_derecha, $expertise->llanta_posterior_derecha], fn($v) => !is_null($v) && $v !== '')
+            : array_filter([$expertise->llanta_anterior_izquierda, $expertise->llanta_anterior_derecha, $expertise->llanta_posterior_izquierda, $expertise->llanta_posterior_derecha], fn($v) => !is_null($v) && $v !== '');
+        $promLlantas = count($tiresVals) > 0 ? round(array_sum($tiresVals) / count($tiresVals), 1) : 0;
+    @endphp
     <div class="card mb-3">
-        <div class="card-header"><h6 class="mb-0"><i class="fas fa-circle me-2"></i>Llantas</h6></div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-circle me-2"></i>Llantas</h6>
+            <span class="badge bg-primary">Promedio: {{ $promLlantas }}%</span>
+        </div>
         <div class="card-body">
             <div class="row text-center">
                 @if(!$expertise->is_moto)
@@ -122,8 +131,23 @@
     </div>
 
     <!-- Step 7: Shocks -->
+    @php
+        $shocksVals = [];
+        if (!$expertise->is_moto || ($expertise->cant_amortiguadores_delanteros ?? 1) == 2) {
+            if (!is_null($expertise->amortiguador_anterior_izquierdo) && $expertise->amortiguador_anterior_izquierdo !== '') $shocksVals[] = $expertise->amortiguador_anterior_izquierdo;
+        }
+        if (!is_null($expertise->amortiguador_anterior_derecho) && $expertise->amortiguador_anterior_derecho !== '') $shocksVals[] = $expertise->amortiguador_anterior_derecho;
+        if (!$expertise->is_moto || ($expertise->cant_amortiguadores_traseros ?? 1) == 2) {
+            if (!is_null($expertise->amortiguador_posterior_izquierdo) && $expertise->amortiguador_posterior_izquierdo !== '') $shocksVals[] = $expertise->amortiguador_posterior_izquierdo;
+        }
+        if (!is_null($expertise->amortiguador_posterior_derecho) && $expertise->amortiguador_posterior_derecho !== '') $shocksVals[] = $expertise->amortiguador_posterior_derecho;
+        $promShocks = count($shocksVals) > 0 ? round(array_sum($shocksVals) / count($shocksVals), 1) : 0;
+    @endphp
     <div class="card mb-3">
-        <div class="card-header"><h6 class="mb-0"><i class="fas fa-compress-arrows-alt me-2"></i>Amortiguadores</h6></div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-compress-arrows-alt me-2"></i>Amortiguadores</h6>
+            <span class="badge bg-primary">Promedio: {{ $promShocks }}%</span>
+        </div>
         <div class="card-body">
             <div class="row text-center">
                 @if(!$expertise->is_moto || ($expertise->cant_amortiguadores_delanteros ?? 1) == 2)
@@ -139,8 +163,15 @@
     </div>
 
     <!-- Step 8: Battery -->
+    @php
+        $batteryVals = array_filter([$expertise->prueba_bateria, $expertise->prueba_arranque, $expertise->carga_bateria], fn($v) => !is_null($v) && $v !== '');
+        $promBattery = count($batteryVals) > 0 ? round(array_sum($batteryVals) / count($batteryVals), 1) : 0;
+    @endphp
     <div class="card mb-3">
-        <div class="card-header"><h6 class="mb-0"><i class="fas fa-battery-full me-2"></i>Batería</h6></div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-battery-full me-2"></i>Batería</h6>
+            <span class="badge bg-primary">Promedio: {{ $promBattery }}%</span>
+        </div>
         <div class="card-body">
             <div class="row text-center">
                 <div class="col-md-4"><strong>Prueba Batería</strong><br><span class="fs-5 fw-bold text-primary">{{ $expertise->prueba_bateria }}%</span></div>

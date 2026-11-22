@@ -67,3 +67,4 @@
 - 2026-11-21: Modernización de los pasos del peritaje (1-12) con modern-web-guidance (replaceChildren, SRI en CDN, accesibilidad ARIA, inputs optimizados y prevención de doble submit).
 - 2026-11-21: Optimización del backend en peritajes y ajustes (transacciones atómicas DB, agregaciones SQL consolidadas, carga masiva de configuraciones/piezas, validaciones estrictas y corrección de búsqueda de clientes por identificación).
 - 2026-11-21: Optimización y blindaje de deploy.sh (control de errores pipefail, orden anti-502, permisos en uploads, storage:link, purga de OPcache y autodetección de contenedor).
+- 2026-11-21: Incorporación de cálculo de promedios e indicador visual en las barras de convenciones de llantas, amortiguadores y batería (PDF y vista de resumen).
