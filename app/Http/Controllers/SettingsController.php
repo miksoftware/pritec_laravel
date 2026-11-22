@@ -4,21 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SettingsController extends Controller
 {
     public function index()
     {
-        $settings = [
-            'company_name' => SystemSetting::getValue('company_name', ''),
-            'company_subtitle' => SystemSetting::getValue('company_subtitle', ''),
-            'company_address' => SystemSetting::getValue('company_address', ''),
-            'contact_phone_1' => SystemSetting::getValue('contact_phone_1', ''),
-            'contact_phone_2' => SystemSetting::getValue('contact_phone_2', ''),
-            'contact_default_phone' => SystemSetting::getValue('contact_default_phone', '1'),
-            'company_web' => SystemSetting::getValue('company_web', ''),
-            'company_description' => SystemSetting::getValue('company_description', ''),
-        ];
+        $settings = SystemSetting::getValues([
+            'company_name' => '',
+            'company_subtitle' => '',
+            'company_address' => '',
+            'contact_phone_1' => '',
+            'contact_phone_2' => '',
+            'contact_default_phone' => '1',
+            'company_web' => '',
+            'company_description' => '',
+        ]);
 
         return view('settings.index', compact('settings'));
     }
@@ -42,9 +43,11 @@ class SettingsController extends Controller
             'company_web', 'company_description',
         ];
 
-        foreach ($keys as $key) {
-            SystemSetting::setValue($key, $request->input($key, ''));
-        }
+        DB::transaction(function () use ($keys, $request) {
+            foreach ($keys as $key) {
+                SystemSetting::setValue($key, $request->input($key, ''));
+            }
+        });
 
         return response()->json([
             'success' => true,

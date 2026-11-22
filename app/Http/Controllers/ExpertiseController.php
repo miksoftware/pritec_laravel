@@ -49,7 +49,7 @@ class ExpertiseController extends Controller
                   ->orWhereHas('client', function ($cq) use ($search) {
                       $cq->where('first_name', 'like', "%{$search}%")
                         ->orWhere('last_name', 'like', "%{$search}%")
-                        ->orWhere('identification_number', 'like', "%{$search}%");
+                        ->orWhere('identification', 'like', "%{$search}%");
                   });
             });
         }
@@ -70,9 +70,9 @@ class ExpertiseController extends Controller
         $statistics = Expertise::getStatistics();
 
         $statusCounts = [
-            'all' => Expertise::count(),
-            'in_progress' => Expertise::inProgress()->count(),
-            'completed' => Expertise::completed()->count(),
+            'all' => $statistics['total'],
+            'in_progress' => $statistics['inProgress'],
+            'completed' => $statistics['completed'],
         ];
 
         return view('expertise.index', compact('expertises', 'statistics', 'statusCounts', 'search', 'month', 'status'));
@@ -211,7 +211,7 @@ class ExpertiseController extends Controller
         $expertise->updateStep2([
             'vehicle_type_id' => $request->vehicle_type_id,
             'tipo_vehiculo' => $request->vehicle_type_id,
-            'placa' => $request->placa,
+            'placa' => strtoupper(trim($request->placa)),
             'marca' => $request->marca,
             'linea' => $request->linea,
             'modelo' => $request->modelo,
@@ -266,6 +266,14 @@ class ExpertiseController extends Controller
 
     private function saveTiresStep(Request $request, Expertise $expertise): void
     {
+        $request->validate([
+            'llanta_anterior_izquierda' => 'nullable|numeric|min:0|max:100',
+            'llanta_anterior_derecha' => 'nullable|numeric|min:0|max:100',
+            'llanta_posterior_izquierda' => 'nullable|numeric|min:0|max:100',
+            'llanta_posterior_derecha' => 'nullable|numeric|min:0|max:100',
+            'observaciones_llantas' => 'nullable|string|max:2000',
+        ]);
+
         $expertise->updateStep6([
             'llanta_anterior_izquierda' => $request->input('llanta_anterior_izquierda', 0),
             'llanta_anterior_derecha' => $request->input('llanta_anterior_derecha', 0),
@@ -279,6 +287,16 @@ class ExpertiseController extends Controller
 
     private function saveShocksStep(Request $request, Expertise $expertise): void
     {
+        $request->validate([
+            'amortiguador_anterior_izquierdo' => 'nullable|numeric|min:0|max:100',
+            'amortiguador_anterior_derecho' => 'nullable|numeric|min:0|max:100',
+            'amortiguador_posterior_izquierdo' => 'nullable|numeric|min:0|max:100',
+            'amortiguador_posterior_derecho' => 'nullable|numeric|min:0|max:100',
+            'cant_amortiguadores_delanteros' => 'nullable|integer|in:1,2',
+            'cant_amortiguadores_traseros' => 'nullable|integer|in:1,2',
+            'observaciones_amortiguadores' => 'nullable|string|max:2000',
+        ]);
+
         $expertise->updateStep7([
             'amortiguador_anterior_izquierdo' => $request->input('amortiguador_anterior_izquierdo', 0),
             'amortiguador_anterior_derecho' => $request->input('amortiguador_anterior_derecho', 0),
@@ -294,6 +312,13 @@ class ExpertiseController extends Controller
 
     private function saveBatteryStep(Request $request, Expertise $expertise): void
     {
+        $request->validate([
+            'prueba_bateria' => 'nullable|numeric|min:0|max:100',
+            'prueba_arranque' => 'nullable|numeric|min:0|max:100',
+            'carga_bateria' => 'nullable|numeric|min:0|max:100',
+            'observaciones_bateria' => 'nullable|string|max:2000',
+        ]);
+
         $expertise->updateStep8([
             'prueba_bateria' => $request->input('prueba_bateria', 0),
             'prueba_arranque' => $request->input('prueba_arranque', 0),
@@ -390,6 +415,15 @@ class ExpertiseController extends Controller
 
     private function savePhotosStep(Request $request, Expertise $expertise): void
     {
+        $request->validate([
+            'fotos' => 'nullable|array',
+            'fotos.*' => 'image|mimes:jpeg,jpg,png,webp|max:10240',
+        ], [
+            'fotos.*.image' => 'El archivo debe ser una imagen válida.',
+            'fotos.*.mimes' => 'Solo se permiten formatos JPG, PNG o WEBP.',
+            'fotos.*.max' => 'Cada imagen no debe exceder los 10MB.',
+        ]);
+
         $files = $request->file('fotos', []);
 
         // Filter only valid uploaded files
@@ -445,11 +479,18 @@ class ExpertiseController extends Controller
 
     private function showSummary(Expertise $expertise)
     {
-        $expertise->load(['client', 'vehicleType', 'inspections', 'photos']);
+        $expertise->load([
+            'client',
+            'vehicleType',
+            'photos',
+            'inspections.piece',
+            'inspections.concept',
+        ]);
 
-        $inspCarroceria = $expertise->getInspectionsBySection('carroceria')->load(['piece', 'concept']);
-        $inspEstructura = $expertise->getInspectionsBySection('estructura')->load(['piece', 'concept']);
-        $inspChasis = $expertise->getInspectionsBySection('chasis')->load(['piece', 'concept']);
+        $grouped = $expertise->inspections->groupBy('section');
+        $inspCarroceria = $grouped->get('carroceria', collect())->sortBy('id');
+        $inspEstructura = $grouped->get('estructura', collect())->sortBy('id');
+        $inspChasis = $grouped->get('chasis', collect())->sortBy('id');
 
         return view('expertise.summary', [
             'expertise' => $expertise,
@@ -487,11 +528,18 @@ class ExpertiseController extends Controller
 
     public function show(Expertise $expertise)
     {
-        $expertise->load(['client', 'vehicleType', 'inspections', 'photos']);
+        $expertise->load([
+            'client',
+            'vehicleType',
+            'photos',
+            'inspections.piece',
+            'inspections.concept',
+        ]);
 
-        $inspCarroceria = $expertise->getInspectionsBySection('carroceria')->load(['piece', 'concept']);
-        $inspEstructura = $expertise->getInspectionsBySection('estructura')->load(['piece', 'concept']);
-        $inspChasis = $expertise->getInspectionsBySection('chasis')->load(['piece', 'concept']);
+        $grouped = $expertise->inspections->groupBy('section');
+        $inspCarroceria = $grouped->get('carroceria', collect())->sortBy('id');
+        $inspEstructura = $grouped->get('estructura', collect())->sortBy('id');
+        $inspChasis = $grouped->get('chasis', collect())->sortBy('id');
 
         return view('expertise.summary', [
             'expertise' => $expertise,
@@ -515,8 +563,13 @@ class ExpertiseController extends Controller
                 foreach ($expertise->photos as $photo) {
                     $fullPath = public_path($photo->ruta);
                     if (file_exists($fullPath)) {
-                        unlink($fullPath);
+                        @unlink($fullPath);
                     }
+                }
+
+                $uploadDir = public_path('uploads/expertises/' . $expertise->id);
+                if (is_dir($uploadDir)) {
+                    @rmdir($uploadDir);
                 }
 
                 // Cascade deletes inspections and photos (FK cascade)
@@ -578,20 +631,14 @@ class ExpertiseController extends Controller
 
     public function getPieces(Request $request)
     {
-        $vehicleTypeId = $request->get('vehicle_type_id', 0);
+        $vehicleTypeId = (int) $request->get('vehicle_type_id', 0);
         $section = $request->get('section', 'carroceria');
 
-        $sectionRecord = VehicleSection::where('vehicle_type_id', $vehicleTypeId)
-            ->where('section_name', $section)
-            ->first();
-
-        if (!$sectionRecord) {
-            return response()->json(['success' => true, 'pieces' => [], 'count' => 0]);
-        }
-
-        $pieces = VehiclePiece::where('section_id', $sectionRecord->id)
-            ->orderBy('piece_number')
-            ->get(['id', 'piece_number', 'piece_name']);
+        $pieces = VehiclePiece::join('vehicle_sections', 'vehicle_pieces.section_id', '=', 'vehicle_sections.id')
+            ->where('vehicle_sections.vehicle_type_id', $vehicleTypeId)
+            ->where('vehicle_sections.section_name', $section)
+            ->orderBy('vehicle_pieces.piece_number')
+            ->get(['vehicle_pieces.id', 'vehicle_pieces.piece_number', 'vehicle_pieces.piece_name']);
 
         return response()->json(['success' => true, 'pieces' => $pieces, 'count' => $pieces->count()]);
     }
@@ -610,19 +657,25 @@ class ExpertiseController extends Controller
 
     public function deletePhoto(ExpertisePhoto $photo)
     {
-        $fullPath = public_path($photo->ruta);
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
+        try {
+            DB::transaction(function () use ($photo) {
+                $fullPath = public_path($photo->ruta);
+                if (file_exists($fullPath)) {
+                    @unlink($fullPath);
+                }
+
+                $expertiseId = $photo->expertise_id;
+                $photo->delete();
+
+                // Update photo count
+                $count = ExpertisePhoto::where('expertise_id', $expertiseId)->count();
+                Expertise::where('id', $expertiseId)->update(['total_fotos' => $count]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'Foto eliminada.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar la foto.'], 500);
         }
-
-        $expertiseId = $photo->expertise_id;
-        $photo->delete();
-
-        // Update photo count
-        $count = ExpertisePhoto::where('expertise_id', $expertiseId)->count();
-        Expertise::where('id', $expertiseId)->update(['total_fotos' => $count]);
-
-        return response()->json(['success' => true, 'message' => 'Foto eliminada.']);
     }
 
     public function generatePdf(Expertise $expertise)
@@ -631,10 +684,15 @@ class ExpertiseController extends Controller
 
         $photos = $expertise->photos;
 
+        // Pre-load all vehicle sections for this vehicle type in a single query
+        $sections = VehicleSection::where('vehicle_type_id', $expertise->vehicle_type_id)
+            ->get()
+            ->keyBy('section_name');
+
         // Get inspection data with images for each section
-        $carroceria = $this->getInspectionDataWithImage($expertise, 'carroceria');
-        $estructura = $this->getInspectionDataWithImage($expertise, 'estructura');
-        $chasis = $this->getInspectionDataWithImage($expertise, 'chasis');
+        $carroceria = $this->getInspectionDataWithImage($expertise, 'carroceria', $sections);
+        $estructura = $this->getInspectionDataWithImage($expertise, 'estructura', $sections);
+        $chasis = $this->getInspectionDataWithImage($expertise, 'chasis', $sections);
 
         // Field maps for motor/systems and liquids/leaks tables
         $campos_tren_motriz = [
@@ -705,22 +763,33 @@ class ExpertiseController extends Controller
             'estado_nivel_aceite_motor' => 'Nivel aceite motor',
         ];
 
-        $phone1 = SystemSetting::getValue('contact_phone_1', '3132049245');
-        $phone2 = SystemSetting::getValue('contact_phone_2', '3158928492');
-        $defaultPhone = SystemSetting::getValue('contact_default_phone', '1');
+        $settings = SystemSetting::getValues([
+            'contact_phone_1' => '3132049245',
+            'contact_phone_2' => '3158928492',
+            'contact_default_phone' => '1',
+            'company_name' => 'SALA TÉCNICA EN AUTOMOTORES',
+            'company_subtitle' => 'CERTIFICACIÓN TÉCNICA EN IDENTIFICACIÓN DE AUTOMOTORES',
+            'company_address' => 'Carrera 16 No. 18-197 Barrio Tenerife',
+            'company_web' => 'peritos.pritec.co',
+            'company_description' => 'Peritos e inspecciones técnicas vehiculares Neiva-Huila',
+        ]);
+
+        $phone1 = $settings['contact_phone_1'];
+        $phone2 = $settings['contact_phone_2'];
+        $defaultPhone = $settings['contact_default_phone'];
         $phonesDisplay = $phone1 . ($phone2 ? '-' . $phone2 : '');
         $whatsappPhone = $defaultPhone === '2' && $phone2 ? $phone2 : $phone1;
 
         $company = [
-            'name' => SystemSetting::getValue('company_name', 'SALA TÉCNICA EN AUTOMOTORES'),
-            'subtitle' => SystemSetting::getValue('company_subtitle', 'CERTIFICACIÓN TÉCNICA EN IDENTIFICACIÓN DE AUTOMOTORES'),
-            'address' => SystemSetting::getValue('company_address', 'Carrera 16 No. 18-197 Barrio Tenerife'),
+            'name' => $settings['company_name'],
+            'subtitle' => $settings['company_subtitle'],
+            'address' => $settings['company_address'],
             'phones' => $phonesDisplay,
             'phone_1' => $phone1,
             'phone_2' => $phone2,
             'whatsapp_phone' => $whatsappPhone,
-            'web' => SystemSetting::getValue('company_web', 'peritos.pritec.co'),
-            'description' => SystemSetting::getValue('company_description', 'Peritos e inspecciones técnicas vehiculares Neiva-Huila'),
+            'web' => $settings['company_web'],
+            'description' => $settings['company_description'],
         ];
 
         return view('expertise.pdf', compact(
@@ -735,10 +804,10 @@ class ExpertiseController extends Controller
     /**
      * Get inspection data with section image for PDF
      */
-    private function getInspectionDataWithImage(Expertise $expertise, string $section): array
+    private function getInspectionDataWithImage(Expertise $expertise, string $section, $sections = null): array
     {
         // Get section image
-        $sectionRecord = VehicleSection::where('vehicle_type_id', $expertise->vehicle_type_id)
+        $sectionRecord = $sections ? ($sections[$section] ?? null) : VehicleSection::where('vehicle_type_id', $expertise->vehicle_type_id)
             ->where('section_name', $section)
             ->first();
 

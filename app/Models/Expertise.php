@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Expertise extends Model
@@ -156,25 +157,35 @@ class Expertise extends Model
 
     public function updateInspections(string $section, array $inspections, int $step, ?string $observacion = null): void
     {
-        // Delete existing inspections for this section
-        $this->inspections()->where('section', $section)->delete();
+        DB::transaction(function () use ($section, $inspections, $step, $observacion) {
+            // Delete existing inspections for this section
+            $this->inspections()->where('section', $section)->delete();
 
-        // Insert new ones
-        foreach ($inspections as $insp) {
-            $this->inspections()->create([
-                'section' => $section,
-                'pieza_id' => $insp['pieza_id'],
-                'concepto_id' => $insp['concepto_id'],
+            // Bulk insert new ones with timestamps in a single query
+            $now = now();
+            $records = [];
+            foreach ($inspections as $insp) {
+                $records[] = [
+                    'expertise_id' => $this->id,
+                    'section'      => $section,
+                    'pieza_id'     => $insp['pieza_id'],
+                    'concepto_id'  => $insp['concepto_id'],
+                    'created_at'   => $now,
+                ];
+            }
+
+            if (!empty($records)) {
+                ExpertiseInspection::insert($records);
+            }
+
+            // Update observations and step
+            $obsColumn = 'observaciones_' . $section;
+            $this->update([
+                $obsColumn => $observacion,
+                'current_step' => max($this->current_step, $step),
+                'status' => 'in_progress',
             ]);
-        }
-
-        // Update observations and step
-        $obsColumn = 'observaciones_' . $section;
-        $this->update([
-            $obsColumn => $observacion,
-            'current_step' => max($this->current_step, $step),
-            'status' => 'in_progress',
-        ]);
+        });
     }
 
     public function updateStep6(array $data): bool
@@ -242,13 +253,18 @@ class Expertise extends Model
 
     public static function getStatistics(): array
     {
-        $total = static::count();
-        $completed = static::completed()->count();
-        $inProgress = static::inProgress()->count();
-        $thisMonth = static::where(function ($q) {
-            $q->whereMonth('service_date', now()->month)
-              ->whereYear('service_date', now()->year);
-        })->count();
+        $now = now();
+        $stats = static::selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status IN ('draft', 'in_progress') THEN 1 END) as in_progress,
+            COUNT(CASE WHEN MONTH(service_date) = ? AND YEAR(service_date) = ? THEN 1 END) as this_month
+        ", [$now->month, $now->year])->first();
+
+        $total = (int) ($stats->total ?? 0);
+        $completed = (int) ($stats->completed ?? 0);
+        $inProgress = (int) ($stats->in_progress ?? 0);
+        $thisMonth = (int) ($stats->this_month ?? 0);
         $totalInspections = ExpertiseInspection::count();
         $totalPhotos = ExpertisePhoto::count();
 
