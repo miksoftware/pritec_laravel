@@ -22,7 +22,7 @@
     $progressClass = $currentStep >= 11 ? 'bg-success' : ($currentStep >= 7 ? 'bg-info' : 'bg-primary');
 @endphp
 
-<div class="mb-4">
+<nav aria-label="Progreso del peritaje" class="mb-4">
     <div class="card">
         <div class="card-body py-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -32,24 +32,24 @@
                         <span class="badge bg-warning text-dark ms-2"><i class="fas fa-motorcycle"></i> Moto</span>
                     @endif
                 </span>
-                <span class="badge {{ $progressClass }}">Paso {{ $currentStep }} de {{ $totalSteps }}</span>
+                <span class="badge {{ $progressClass }}" id="progressStepBadge">Paso {{ $currentStep }} de {{ $totalSteps }}</span>
             </div>
-            <div class="progress" style="height: 8px;">
+            <div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="{{ $percentage }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso general del peritaje">
                 <div class="progress-bar {{ $progressClass }}" style="width: {{ $percentage }}%"></div>
             </div>
-            <div class="d-flex justify-content-between mt-2 small flex-wrap gap-1">
+            <ol class="d-flex justify-content-between mt-2 small flex-wrap gap-1 list-unstyled m-0 p-0">
                 @foreach($steps as $num => $info)
                     @if($num === 3 && $isMoto) @continue @endif
                     @php
                         if ($num < $currentStep) { $cls = 'text-success'; $ic = 'fas fa-check-circle'; }
-                        elseif ($num === $currentStep) { $cls = 'text-primary'; $ic = 'fas fa-circle'; }
+                        elseif ($num === $currentStep) { $cls = 'text-primary fw-semibold'; $ic = 'fas fa-circle'; }
                         else { $cls = 'text-muted'; $ic = 'far fa-circle'; }
                     @endphp
-                    <small class="{{ $cls }}" title="{{ $info['name'] }}">
-                        <i class="{{ $ic }} me-1"></i>{{ $info['name'] }}
-                    </small>
+                    <li class="{{ $cls }}" title="{{ $info['name'] }}" @if($num === $currentStep) aria-current="step" @endif>
+                        <i class="{{ $ic }} me-1" aria-hidden="true"></i>{{ $info['name'] }}
+                    </li>
                 @endforeach
-            </div>
+            </ol>
         </div>
     </div>
-</div>
+</nav>

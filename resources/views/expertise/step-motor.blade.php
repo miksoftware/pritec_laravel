@@ -65,14 +65,14 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light"><tr><th>Sistema</th><th style="width:200px">Estado</th><th>Observación</th></tr></thead>
+                        <thead class="table-light"><tr><th scope="col">Sistema</th><th scope="col" style="width:200px">Estado</th><th scope="col">Observación</th></tr></thead>
                         <tbody>
                             @foreach($items as $field => $label)
                             @php $respField = str_replace('estado_', 'respuesta_', $field); if (str_starts_with($field, 'tension_')) $respField = 'respuesta_' . $field; @endphp
                             <tr>
-                                <td class="align-middle">{{ $label }}</td>
+                                <td class="align-middle fw-medium">{{ $label }}</td>
                                 <td>
-                                    <select class="form-select form-select-sm" name="{{ $field }}">
+                                    <select class="form-select form-select-sm" name="{{ $field }}" aria-label="Estado {{ $label }}">
                                         <option value="">--</option>
                                         @foreach($estadoOptions as $val => $text)
                                             <option value="{{ $val }}" {{ ($motorData[$field] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -80,7 +80,7 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control form-control-sm" name="{{ $respField }}" value="{{ $motorData[$respField] ?? '' }}" placeholder="Observación...">
+                                    <input type="text" class="form-control form-control-sm" name="{{ $respField }}" value="{{ $motorData[$respField] ?? '' }}" placeholder="Observación..." aria-label="Observación {{ $label }}" enterkeyhint="next">
                                 </td>
                             </tr>
                             @endforeach
@@ -95,12 +95,12 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Observaciones Motor</label>
-                        <textarea class="form-control" name="observaciones_motor" rows="3">{{ $motorData['observaciones_motor'] ?? $expertise->observaciones_motor }}</textarea>
+                        <label for="observaciones_motor" class="form-label">Observaciones Motor</label>
+                        <textarea class="form-control" id="observaciones_motor" name="observaciones_motor" rows="3">{{ $motorData['observaciones_motor'] ?? $expertise->observaciones_motor }}</textarea>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Observaciones Interior</label>
-                        <textarea class="form-control" name="observaciones_interior" rows="3">{{ $motorData['observaciones_interior'] ?? $expertise->observaciones_interior }}</textarea>
+                        <label for="observaciones_interior" class="form-label">Observaciones Interior</label>
+                        <textarea class="form-control" id="observaciones_interior" name="observaciones_interior" rows="3">{{ $motorData['observaciones_interior'] ?? $expertise->observaciones_interior }}</textarea>
                     </div>
                 </div>
             </div>
@@ -109,8 +109,8 @@
         <div class="d-flex justify-content-between">
             <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => 8]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Paso Anterior</a>
             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
-                Continuar al Paso 10 <i class="fas fa-arrow-right ms-2"></i>
+                <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Continuar al Paso 10 <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
             </button>
         </div>
     </form>
@@ -122,13 +122,27 @@
 document.getElementById('stepForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.querySelector('.loading').classList.add('show');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.querySelector('.loading').classList.add('show');
+
     fetch('{{ route("expertise.save-step", ["expertise" => $expertise->id, "step" => 9]) }}', {
         method: 'POST', body: new FormData(this), headers: { 'Accept': 'application/json' }
     }).then(r => r.json()).then(data => {
-        if (data.success) window.location.href = data.redirect;
-        else { Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' }); btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); }
-    }).catch(() => { btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); });
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+            btn.querySelector('.loading').classList.remove('show');
+        }
+    }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.querySelector('.loading').classList.remove('show');
+    });
 });
 </script>
 @endpush

@@ -230,8 +230,9 @@
             <a href="{{ route('expertise.pdf', $expertise) }}" target="_blank" class="btn btn-warning btn-lg"><i class="fas fa-print me-2"></i>Imprimir / Guardar PDF</a>
         @else
             <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => 11]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Volver al Paso 11</a>
-            <button class="btn btn-success btn-lg" id="completeBtn" onclick="completeExpertise()">
-                <i class="fas fa-check-double me-2"></i>Finalizar Peritaje
+            <button type="button" class="btn btn-success btn-lg" id="completeBtn" onclick="completeExpertise()">
+                <span class="loading spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                <i class="fas fa-check-double me-2" aria-hidden="true"></i>Finalizar Peritaje
             </button>
         @endif
     </div>
@@ -247,6 +248,12 @@ function completeExpertise() {
         confirmButtonText: 'Sí, finalizar', cancelButtonText: 'Revisar', background: '#1a2332', color: '#fff'
     }).then(r => {
         if (r.isConfirmed) {
+            const btn = document.getElementById('completeBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.setAttribute('aria-busy', 'true');
+                btn.querySelector('.loading')?.classList.remove('d-none');
+            }
             fetch('{{ route("expertise.complete", $expertise) }}', {
                 method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }
             }).then(r => r.json()).then(data => {
@@ -255,6 +262,18 @@ function completeExpertise() {
                     .then(() => window.location.href = data.redirect);
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.removeAttribute('aria-busy');
+                        btn.querySelector('.loading')?.classList.add('d-none');
+                    }
+                }
+            }).catch(() => {
+                Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+                if (btn) {
+                    btn.disabled = false;
+                    btn.removeAttribute('aria-busy');
+                    btn.querySelector('.loading')?.classList.add('d-none');
                 }
             });
         }

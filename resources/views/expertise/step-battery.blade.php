@@ -34,14 +34,16 @@
                             <div class="card percentage-card">
                                 <div class="card-body">
                                     <div class="text-center mb-2">
-                                        <i class="{{ $battery['icon'] }} fa-2x text-primary mb-2"></i>
-                                        <h6 class="mb-0">{{ $battery['label'] }}</h6>
+                                        <i class="{{ $battery['icon'] }} fa-2x text-primary mb-2" aria-hidden="true"></i>
+                                        <label for="input_{{ $battery['name'] }}" class="mb-0 h6 d-block cursor-pointer">{{ $battery['label'] }}</label>
                                     </div>
                                     <div class="d-flex justify-content-center mb-3">
                                         <div class="input-group" style="width: 120px;">
                                             <input type="number" class="form-control text-center fw-bold percentage-input"
                                                    id="input_{{ $battery['name'] }}" min="0" max="100"
                                                    value="{{ $val }}"
+                                                   inputmode="numeric"
+                                                   aria-label="Porcentaje {{ $battery['label'] }}"
                                                    data-slider="slider_{{ $battery['name'] }}"
                                                    data-bar="bar_{{ $battery['name'] }}">
                                             <span class="input-group-text">%</span>
@@ -51,6 +53,7 @@
                                         <input type="range" class="percentage-slider" name="{{ $battery['name'] }}"
                                                id="slider_{{ $battery['name'] }}" min="0" max="100" step="1"
                                                value="{{ $val }}"
+                                               aria-label="Ajustar porcentaje de {{ $battery['label'] }}"
                                                data-input="input_{{ $battery['name'] }}"
                                                data-bar="bar_{{ $battery['name'] }}">
                                         <div class="percentage-bar" id="bar_{{ $battery['name'] }}" style="width: {{ $val }}%"></div>
@@ -68,15 +71,15 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Observaciones de Batería</label>
-                    <textarea class="form-control" name="observaciones_bateria" rows="3">{{ $expertise->observaciones_bateria }}</textarea>
+                    <label for="observaciones_bateria" class="form-label">Observaciones de Batería</label>
+                    <textarea class="form-control" id="observaciones_bateria" name="observaciones_bateria" rows="3">{{ $expertise->observaciones_bateria }}</textarea>
                 </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => 7]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Paso Anterior</a>
                     <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                        <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
-                        Continuar al Paso 9 <i class="fas fa-arrow-right ms-2"></i>
+                        <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Continuar al Paso 9 <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
                     </button>
                 </div>
             </form>
@@ -93,13 +96,27 @@
 document.getElementById('stepForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.querySelector('.loading').classList.add('show');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.querySelector('.loading').classList.add('show');
+
     fetch('{{ route("expertise.save-step", ["expertise" => $expertise->id, "step" => 8]) }}', {
         method: 'POST', body: new FormData(this), headers: { 'Accept': 'application/json' }
     }).then(r => r.json()).then(data => {
-        if (data.success) window.location.href = data.redirect;
-        else { Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' }); btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); }
-    }).catch(() => { btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); });
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+            btn.querySelector('.loading').classList.remove('show');
+        }
+    }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.querySelector('.loading').classList.remove('show');
+    });
 });
 </script>
 @endpush

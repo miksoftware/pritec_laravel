@@ -46,6 +46,7 @@
         z-index: 2;
         opacity: 0;
         cursor: pointer;
+        accent-color: var(--accent, #3498db);
         -webkit-appearance: none;
         appearance: none;
     }

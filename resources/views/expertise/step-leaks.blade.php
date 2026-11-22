@@ -57,13 +57,13 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light"><tr><th>Componente</th><th style="width:200px">Estado</th><th style="width:220px">Respuesta</th></tr></thead>
+                        <thead class="table-light"><tr><th scope="col">Componente</th><th scope="col" style="width:200px">Estado</th><th scope="col" style="width:220px">Respuesta</th></tr></thead>
                         <tbody>
                             @foreach($fugasItems as $field => $label)
                             @php $estadoField = str_replace('respuesta_', 'estado_', $field); @endphp
-                            <tr><td>{{ $label }}</td>
+                            <tr><td class="align-middle fw-medium">{{ $label }}</td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $estadoField }}">
+                                <select class="form-select form-select-sm" name="{{ $estadoField }}" aria-label="Estado {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($estadoOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$estadoField] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -71,7 +71,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $field }}">
+                                <select class="form-select form-select-sm" name="{{ $field }}" aria-label="Respuesta {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($respOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$field] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -91,13 +91,13 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light"><tr><th>Componente</th><th style="width:200px">Estado</th><th style="width:220px">Respuesta</th></tr></thead>
+                        <thead class="table-light"><tr><th scope="col">Componente</th><th scope="col" style="width:200px">Estado</th><th scope="col" style="width:220px">Respuesta</th></tr></thead>
                         <tbody>
                             @foreach($estadoItems as $field => $label)
                             @php $estadoField = str_replace('respuesta_estado_', 'estado_comp_', $field); @endphp
-                            <tr><td>{{ $label }}</td>
+                            <tr><td class="align-middle fw-medium">{{ $label }}</td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $estadoField }}">
+                                <select class="form-select form-select-sm" name="{{ $estadoField }}" aria-label="Estado {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($estadoOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$estadoField] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -105,7 +105,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $field }}">
+                                <select class="form-select form-select-sm" name="{{ $field }}" aria-label="Respuesta {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($estadoCompOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$field] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -125,13 +125,13 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light"><tr><th>Componente</th><th style="width:200px">Estado</th><th style="width:220px">Respuesta</th></tr></thead>
+                        <thead class="table-light"><tr><th scope="col">Componente</th><th scope="col" style="width:200px">Estado</th><th scope="col" style="width:220px">Respuesta</th></tr></thead>
                         <tbody>
                             @foreach($nivelItems as $field => $label)
                             @php $estadoField = str_replace('respuesta_', 'estado_', $field); @endphp
-                            <tr><td>{{ $label }}</td>
+                            <tr><td class="align-middle fw-medium">{{ $label }}</td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $estadoField }}">
+                                <select class="form-select form-select-sm" name="{{ $estadoField }}" aria-label="Estado {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($estadoOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$estadoField] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -139,7 +139,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select form-select-sm" name="{{ $field }}">
+                                <select class="form-select form-select-sm" name="{{ $field }}" aria-label="Respuesta {{ $label }}">
                                     <option value="">--</option>
                                     @foreach($nivelOptions as $val => $text)
                                         <option value="{{ $val }}" {{ ($fugasData[$field] ?? '') === $val ? 'selected' : '' }}>{{ $text }}</option>
@@ -157,12 +157,12 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label"><i class="fas fa-road me-1"></i>Prueba de Ruta</label>
-                    <textarea class="form-control" name="prueba_ruta" rows="3">{{ $fugasData['prueba_ruta'] ?? $expertise->prueba_ruta }}</textarea>
+                    <label for="prueba_ruta" class="form-label"><i class="fas fa-road me-1"></i>Prueba de Ruta</label>
+                    <textarea class="form-control" id="prueba_ruta" name="prueba_ruta" rows="3">{{ $fugasData['prueba_ruta'] ?? $expertise->prueba_ruta }}</textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Observaciones Generales</label>
-                    <textarea class="form-control" name="observaciones_fugas" rows="3">{{ $fugasData['observaciones_fugas'] ?? $expertise->observaciones_fugas }}</textarea>
+                    <label for="observaciones_fugas" class="form-label">Observaciones Generales</label>
+                    <textarea class="form-control" id="observaciones_fugas" name="observaciones_fugas" rows="3">{{ $fugasData['observaciones_fugas'] ?? $expertise->observaciones_fugas }}</textarea>
                 </div>
             </div>
         </div>
@@ -170,8 +170,8 @@
         <div class="d-flex justify-content-between">
             <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => 9]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Paso Anterior</a>
             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
-                Continuar al Paso 11 <i class="fas fa-arrow-right ms-2"></i>
+                <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Continuar al Paso 11 <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
             </button>
         </div>
     </form>
@@ -183,13 +183,27 @@
 document.getElementById('stepForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.querySelector('.loading').classList.add('show');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.querySelector('.loading').classList.add('show');
+
     fetch('{{ route("expertise.save-step", ["expertise" => $expertise->id, "step" => 10]) }}', {
         method: 'POST', body: new FormData(this), headers: { 'Accept': 'application/json' }
     }).then(r => r.json()).then(data => {
-        if (data.success) window.location.href = data.redirect;
-        else { Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' }); btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); }
-    }).catch(() => { btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); });
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+            btn.querySelector('.loading').classList.remove('show');
+        }
+    }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.querySelector('.loading').classList.remove('show');
+    });
 });
 </script>
 @endpush

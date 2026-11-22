@@ -19,20 +19,20 @@
                 @csrf
                 <p class="text-muted mb-3">Seleccione las fotografías del vehículo. Se recomienda incluir fotos de todas las vistas del vehículo.</p>
 
-                <div class="border rounded p-4 text-center mb-4" id="dropZone" style="border-style: dashed !important; cursor: pointer;">
-                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <div class="border rounded p-4 text-center mb-4" id="dropZone" style="border-style: dashed !important; cursor: pointer;" tabindex="0" role="button" aria-label="Zona para arrastrar y soltar fotos o hacer clic para seleccionar">
+                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3" aria-hidden="true"></i>
                     <p class="text-muted mb-1">Arrastra las fotos aquí o haz clic para seleccionar</p>
                     <small class="text-muted">Formatos: JPG, PNG, WEBP | Máximo 10MB por foto</small>
-                    <input type="file" name="fotos[]" id="fileInput" class="d-none" multiple accept="image/*">
+                    <input type="file" name="fotos[]" id="fileInput" class="d-none" multiple accept="image/*" aria-label="Seleccionar fotografías">
                 </div>
 
                 <div id="photoPreview" class="row g-3 mb-4">
                     @foreach($photos as $photo)
                     <div class="col-md-3 col-6" id="existingPhoto_{{ $photo->id }}">
                         <div class="card h-100 position-relative">
-                            <img src="{{ asset($photo->ruta) }}" class="card-img-top" style="height:150px; object-fit:cover;">
-                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="deleteExistingPhoto({{ $photo->id }})" style="border-radius: 50%; width: 28px; height: 28px; padding: 0;">
-                                <i class="fas fa-times" style="font-size: 0.7rem;"></i>
+                            <img src="{{ asset($photo->ruta) }}" alt="Foto {{ $photo->nombre_original }}" class="card-img-top" style="height:150px; object-fit:cover;">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="deleteExistingPhoto({{ $photo->id }})" style="border-radius: 50%; width: 28px; height: 28px; padding: 0;" aria-label="Eliminar foto {{ $photo->nombre_original }}">
+                                <i class="fas fa-times" style="font-size: 0.7rem;" aria-hidden="true"></i>
                             </button>
                             <div class="card-body p-2 text-center">
                                 <small class="text-muted">{{ $photo->nombre_original }}</small>
@@ -41,13 +41,13 @@
                     </div>
                     @endforeach
                 </div>
-                <div id="newPhotoPreview" class="row g-3 mb-4"></div>
+                <div id="newPhotoPreview" class="row g-3 mb-4" aria-live="polite"></div>
 
                 <div class="d-flex justify-content-between">
                     <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => 10]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Paso Anterior</a>
                     <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                        <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
-                        <i class="fas fa-check-double me-2"></i>Finalizar y Ver Resumen
+                        <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <i class="fas fa-check-double me-2" aria-hidden="true"></i>Finalizar y Ver Resumen
                     </button>
                 </div>
             </form>
@@ -63,6 +63,12 @@ const fileInput = document.getElementById('fileInput');
 const newPreview = document.getElementById('newPhotoPreview');
 
 dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+    }
+});
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-primary'));
 dropZone.addEventListener('drop', (e) => {
@@ -75,17 +81,17 @@ dropZone.addEventListener('drop', (e) => {
 fileInput.addEventListener('change', showPreviews);
 
 function showPreviews() {
-    newPreview.innerHTML = '';
-    Array.from(fileInput.files).forEach((file, i) => {
+    newPreview.replaceChildren();
+    Array.from(fileInput.files).forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const div = document.createElement('div');
             div.className = 'col-md-3 col-6';
             div.innerHTML = `
                 <div class="card h-100 border-success">
-                    <img src="${e.target.result}" class="card-img-top" style="height:150px; object-fit:cover;">
+                    <img src="${e.target.result}" alt="Vista previa ${file.name}" class="card-img-top" style="height:150px; object-fit:cover;">
                     <div class="card-body p-2 text-center">
-                        <small class="text-success"><i class="fas fa-check me-1"></i>${file.name}</small>
+                        <small class="text-success"><i class="fas fa-check me-1" aria-hidden="true"></i>${file.name}</small>
                     </div>
                 </div>
             `;
@@ -109,7 +115,7 @@ function deleteExistingPhoto(photoId) {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('existingPhoto_' + photoId).remove();
+                    document.getElementById('existingPhoto_' + photoId)?.remove();
                 }
             });
         }
@@ -119,14 +125,27 @@ function deleteExistingPhoto(photoId) {
 document.getElementById('stepForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.querySelector('.loading').classList.add('show');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.querySelector('.loading').classList.add('show');
 
     fetch('{{ route("expertise.save-step", ["expertise" => $expertise->id, "step" => 11]) }}', {
         method: 'POST', body: new FormData(this), headers: { 'Accept': 'application/json' }
     }).then(r => r.json()).then(data => {
-        if (data.success) window.location.href = data.redirect;
-        else { Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' }); btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); }
-    }).catch(() => { btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); });
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+            btn.querySelector('.loading').classList.remove('show');
+        }
+    }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.querySelector('.loading').classList.remove('show');
+    });
 });
 </script>
 @endpush

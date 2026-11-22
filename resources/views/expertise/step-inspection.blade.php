@@ -32,13 +32,13 @@
                         <div class="row mb-2 inspection-row align-items-center">
                             <div class="col-md-1 text-center"><span class="badge bg-secondary">{{ $i + 1 }}</span></div>
                             <div class="col-md-5">
-                                <select class="form-select" name="pieza_id[]"></select>
+                                <select class="form-select" name="pieza_id[]" aria-label="Seleccionar Pieza"></select>
                             </div>
                             <div class="col-md-5">
-                                <select class="form-select" name="concepto_id[]"></select>
+                                <select class="form-select" name="concepto_id[]" aria-label="Seleccionar Concepto"></select>
                             </div>
                             <div class="col-md-1">
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.inspection-row').remove();updateNumbers()"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.inspection-row').remove();updateNumbers()" aria-label="Eliminar fila de inspección"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
                         @endforeach
@@ -48,15 +48,15 @@
                 <button type="button" class="btn btn-outline-primary mb-3" id="addRowBtn"><i class="fas fa-plus me-2"></i>Agregar Pieza</button>
 
                 <div class="mb-3">
-                    <label class="form-label">Observaciones de {{ $sectionTitle }}</label>
-                    <textarea class="form-control" name="observaciones_{{ $section }}" rows="3" placeholder="Observaciones generales...">{{ $expertise->{'observaciones_' . $section} }}</textarea>
+                    <label for="observaciones_{{ $section }}" class="form-label">Observaciones de {{ $sectionTitle }}</label>
+                    <textarea class="form-control" id="observaciones_{{ $section }}" name="observaciones_{{ $section }}" rows="3" placeholder="Observaciones generales...">{{ $expertise->{'observaciones_' . $section} }}</textarea>
                 </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="{{ route('expertise.step', ['expertise' => $expertise->id, 'step' => $expertise->getPreviousStep($step)]) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Paso Anterior</a>
                     <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                        <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
-                        Continuar al Paso {{ $expertise->getNextStep($step) }} <i class="fas fa-arrow-right ms-2"></i>
+                        <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Continuar al Paso {{ $expertise->getNextStep($step) }} <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
                     </button>
                 </div>
             </form>
@@ -90,14 +90,36 @@ async function loadData() {
 function populateSelects(row, selPieza, selConcepto) {
     const pSel = row.querySelector('select[name="pieza_id[]"]');
     const cSel = row.querySelector('select[name="concepto_id[]"]');
-    pSel.innerHTML = '<option value="">-- Seleccionar Pieza --</option>';
-    cSel.innerHTML = '<option value="">-- Seleccionar Concepto --</option>';
+
+    const pFragment = document.createDocumentFragment();
+    const pDefault = document.createElement('option');
+    pDefault.value = '';
+    pDefault.textContent = '-- Seleccionar Pieza --';
+    pFragment.appendChild(pDefault);
+
     piecesData.forEach(p => {
-        pSel.innerHTML += `<option value="${p.id}" ${p.id == selPieza ? 'selected' : ''}>${p.piece_number}. ${p.piece_name}</option>`;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.piece_number}. ${p.piece_name}`;
+        if (p.id == selPieza) opt.selected = true;
+        pFragment.appendChild(opt);
     });
+    pSel.replaceChildren(pFragment);
+
+    const cFragment = document.createDocumentFragment();
+    const cDefault = document.createElement('option');
+    cDefault.value = '';
+    cDefault.textContent = '-- Seleccionar Concepto --';
+    cFragment.appendChild(cDefault);
+
     conceptsData.forEach(c => {
-        cSel.innerHTML += `<option value="${c.id}" ${c.id == selConcepto ? 'selected' : ''}>${c.name}</option>`;
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        if (c.id == selConcepto) opt.selected = true;
+        cFragment.appendChild(opt);
     });
+    cSel.replaceChildren(cFragment);
 }
 
 function addRow() {
@@ -107,9 +129,9 @@ function addRow() {
     div.className = 'row mb-2 inspection-row align-items-center';
     div.innerHTML = `
         <div class="col-md-1 text-center"><span class="badge bg-secondary">${num}</span></div>
-        <div class="col-md-5"><select class="form-select" name="pieza_id[]"></select></div>
-        <div class="col-md-5"><select class="form-select" name="concepto_id[]"></select></div>
-        <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.inspection-row').remove();updateNumbers()"><i class="fas fa-times"></i></button></div>
+        <div class="col-md-5"><select class="form-select" name="pieza_id[]" aria-label="Seleccionar Pieza"></select></div>
+        <div class="col-md-5"><select class="form-select" name="concepto_id[]" aria-label="Seleccionar Concepto"></select></div>
+        <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.inspection-row').remove();updateNumbers()" aria-label="Eliminar fila de inspección"><i class="fas fa-times"></i></button></div>
     `;
     rows.appendChild(div);
     populateSelects(div, null, null);
@@ -126,14 +148,27 @@ document.getElementById('addRowBtn').addEventListener('click', addRow);
 document.getElementById('stepForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.querySelector('.loading').classList.add('show');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.querySelector('.loading').classList.add('show');
 
     fetch('{{ route("expertise.save-step", ["expertise" => $expertise->id, "step" => $step]) }}', {
         method: 'POST', body: new FormData(this), headers: { 'Accept': 'application/json' }
     }).then(r => r.json()).then(data => {
-        if (data.success) window.location.href = data.redirect;
-        else { Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' }); btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); }
-    }).catch(() => { btn.disabled = false; btn.querySelector('.loading').classList.remove('show'); });
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1a2332', color: '#fff' });
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+            btn.querySelector('.loading').classList.remove('show');
+        }
+    }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la solicitud.', background: '#1a2332', color: '#fff' });
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.querySelector('.loading').classList.remove('show');
+    });
 });
 
 loadData();
