@@ -812,24 +812,62 @@ class ExpertiseController extends Controller
             ->first();
 
         $imagePath = '';
-        if ($sectionRecord && $sectionRecord->image_path) {
-            $imagePath = 'uploads/vehicle_sections/' . $sectionRecord->image_path;
+        $totalSectionPieces = 0;
+        if ($sectionRecord) {
+            if ($sectionRecord->image_path) {
+                $imagePath = 'uploads/vehicle_sections/' . $sectionRecord->image_path;
+            }
+            $totalSectionPieces = VehiclePiece::where('section_id', $sectionRecord->id)->count();
         }
 
         // Get pieces with positions and concepts
-        $pieces = DB::table('expertise_inspections as ei')
+        $rawPieces = DB::table('expertise_inspections as ei')
             ->join('vehicle_pieces as vp', 'ei.pieza_id', '=', 'vp.id')
             ->join('inspection_concepts as ic', 'ei.concepto_id', '=', 'ic.id')
             ->where('ei.expertise_id', $expertise->id)
             ->where('ei.section', $section)
             ->orderBy('vp.piece_number')
             ->select('vp.piece_number', 'vp.piece_name', 'vp.position_x', 'vp.position_y', 'ic.name as concept_name')
-            ->get()
-            ->toArray();
+            ->get();
+
+        $pieces = [];
+        $sumPercentages = 0;
+        $criticalCount = 0;
+
+        foreach ($rawPieces as $p) {
+            $pct = Expertise::getConceptPercentage($section, $p->concept_name);
+            $isCritical = ($section === 'estructura') && Expertise::isConceptCriticalInEstructura($p->concept_name);
+            if ($isCritical) {
+                $criticalCount++;
+            }
+            $sumPercentages += $pct;
+
+            $pieces[] = [
+                'piece_number' => $p->piece_number,
+                'piece_name' => $p->piece_name,
+                'position_x' => $p->position_x,
+                'position_y' => $p->position_y,
+                'concept_name' => $p->concept_name,
+                'percentage' => $pct,
+                'is_critical' => $isCritical,
+            ];
+        }
+
+        $evaluatedCount = count($pieces);
+        $averagePercentage = $evaluatedCount > 0 ? round($sumPercentages / $evaluatedCount, 1) : 100.0;
+        $statusInfo = Expertise::getInspectionSectionStatus($section, $averagePercentage, $criticalCount);
 
         return [
             'image' => $imagePath,
-            'pieces' => array_map(fn($p) => (array) $p, $pieces),
+            'pieces' => $pieces,
+            'total_section_pieces' => $totalSectionPieces,
+            'evaluated_count' => $evaluatedCount,
+            'average_percentage' => $averagePercentage,
+            'critical_count' => $criticalCount,
+            'status_label' => $statusInfo['label'],
+            'status_class' => $statusInfo['class'],
+            'status_color' => $statusInfo['color'],
+            'is_critical' => $statusInfo['is_critical'],
         ];
     }
 }

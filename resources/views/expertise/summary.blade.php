@@ -76,21 +76,78 @@
     @foreach(['carroceria' => ['Carrocería', $inspCarroceria], 'estructura' => ['Estructura', $inspEstructura], 'chasis' => ['Chasis', $inspChasis]] as $sec => $data)
         @if($sec === 'carroceria' && $expertise->is_moto) @continue @endif
         @if($data[1]->count() > 0)
+        @php
+            $isSecPct = in_array($sec, ['carroceria', 'estructura']);
+            $secSum = 0;
+            $secCrit = 0;
+            foreach ($data[1] as $insp) {
+                $cName = $insp->concept?->name ?? '';
+                $secSum += \App\Models\Expertise::getConceptPercentage($sec, $cName);
+                if ($sec === 'estructura' && \App\Models\Expertise::isConceptCriticalInEstructura($cName)) {
+                    $secCrit++;
+                }
+            }
+            $secAvg = $data[1]->count() > 0 ? round($secSum / $data[1]->count(), 1) : 100.0;
+            $secStatusInfo = \App\Models\Expertise::getInspectionSectionStatus($sec, $secAvg, $secCrit);
+        @endphp
         <div class="card mb-3">
-            <div class="card-header"><h6 class="mb-0"><i class="fas fa-search me-2"></i>Inspección {{ $data[0] }}</h6></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-search me-2"></i>Inspección {{ $data[0] }}</h6>
+                @if($isSecPct)
+                    <span class="badge bg-primary fs-6">% {{ $data[0] }}: {{ $secAvg }}% ({{ $secStatusInfo['label'] }})</span>
+                @endif
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-sm mb-0">
-                        <thead class="table-light"><tr><th>#</th><th>Pieza</th><th>Concepto</th></tr></thead>
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Pieza</th>
+                                <th>Concepto</th>
+                                @if($isSecPct)
+                                <th>%</th>
+                                @endif
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach($data[1] as $i => $insp)
+                            @php
+                                $cName = $insp->concept?->name ?? '';
+                                $pct = \App\Models\Expertise::getConceptPercentage($sec, $cName);
+                                $isCrit = ($sec === 'estructura') && \App\Models\Expertise::isConceptCriticalInEstructura($cName);
+                            @endphp
                             <tr>
                                 <td>{{ $i + 1 }}</td>
                                 <td>{{ $insp->piece?->piece_number }}. {{ $insp->piece?->piece_name }}</td>
-                                <td><span class="badge bg-info">{{ $insp->concept?->name }}</span></td>
+                                <td>
+                                    <span class="badge bg-info">{{ $cName }}</span>
+                                    @if($isCrit)
+                                        <span class="badge bg-danger ms-1" title="Pieza Crítica">Crítica</span>
+                                    @endif
+                                </td>
+                                @if($isSecPct)
+                                <td><span class="badge bg-secondary">{{ $pct }}%</span></td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
+                        @if($isSecPct)
+                        <tfoot class="table-light">
+                            <tr class="fw-bold">
+                                <td colspan="2">PROMEDIO {{ strtoupper($data[0]) }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $secStatusInfo['label'] === 'Bueno' ? 'success' : ($secStatusInfo['label'] === 'Aceptable' ? 'warning' : 'danger') }}">
+                                        {{ $secStatusInfo['label'] }}
+                                    </span>
+                                    @if($secCrit > 0)
+                                        <small class="text-danger ms-1">({{ $secCrit }} crítica{{ $secCrit > 1 ? 's' : '' }})</small>
+                                    @endif
+                                </td>
+                                <td>{{ $secAvg }}%</td>
+                            </tr>
+                        </tfoot>
+                        @endif
                     </table>
                 </div>
                 @if($expertise->{'observaciones_' . $sec})

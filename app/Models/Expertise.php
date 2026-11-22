@@ -299,4 +299,109 @@ class Expertise extends Model
         }
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     }
+
+    // ───── Inspection Percentages & Concepts (Carrocería / Estructura) ─────
+
+    /**
+     * Map an inspection concept name to its percentage in a given section (carroceria/estructura)
+     * Values based on the official technical appraisal scale:
+     * Carrocería: B=100%, BR=85%, MR=40%, BP=95%, MP=65%, R=70%, F=30%, DL=75%, DM=50%, DF=20%, S=60%, RY=90%, HD=70%
+     * Estructura: B=100%, BR=70%, MR=20%, BP=80%, MP=55%, R=65%, F=10%, DL=60%, DM=30%, DF=0%, S=40%, RY=90%
+     */
+    public static function getConceptPercentage(string $section, string $conceptName): int
+    {
+        $normalized = mb_strtolower(trim($conceptName), 'UTF-8');
+
+        if ($section === 'carroceria') {
+            return match (true) {
+                str_contains($normalized, 'buena rep') => 85,
+                str_contains($normalized, 'mala rep') => 40,
+                str_contains($normalized, 'bien rep') => 95,
+                str_contains($normalized, 'mal rep') => 65,
+                str_contains($normalized, 'regular') => 70,
+                str_contains($normalized, 'fisurad') => 30,
+                str_contains($normalized, 'deformidad leve') => 75,
+                str_contains($normalized, 'deformidad med') => 50,
+                str_contains($normalized, 'deformidad fuer') => 20,
+                str_contains($normalized, 'sumid') => 60,
+                str_contains($normalized, 'ray') => 90,
+                str_contains($normalized, 'hermeticidad') => 70,
+                str_contains($normalized, 'buen') => 100,
+                default => 100,
+            };
+        }
+
+        if ($section === 'estructura') {
+            return match (true) {
+                str_contains($normalized, 'buena rep') => 70,
+                str_contains($normalized, 'mala rep') => 20,
+                str_contains($normalized, 'bien rep') => 80,
+                str_contains($normalized, 'mal rep') => 55,
+                str_contains($normalized, 'regular') => 65,
+                str_contains($normalized, 'fisurad') => 10,
+                str_contains($normalized, 'deformidad leve') => 60,
+                str_contains($normalized, 'deformidad med') => 30,
+                str_contains($normalized, 'deformidad fuer') => 0,
+                str_contains($normalized, 'sumid') => 40,
+                str_contains($normalized, 'ray') => 90,
+                str_contains($normalized, 'buen') => 100,
+                default => 100,
+            };
+        }
+
+        return 100;
+    }
+
+    /**
+     * Check if a concept is critical in Estructura (F=Fisurado, DF=Deformidad fuerte, MR=Mala reparación)
+     */
+    public static function isConceptCriticalInEstructura(string $conceptName): bool
+    {
+        $normalized = mb_strtolower(trim($conceptName), 'UTF-8');
+        return str_contains($normalized, 'fisurad')
+            || str_contains($normalized, 'deformidad fuer')
+            || str_contains($normalized, 'mala rep');
+    }
+
+    /**
+     * Get condition status label, badge class and color from percentage and critical pieces
+     * Scale: Bueno 90-100% | Aceptable 60-89% | Malo 0-59%
+     * Special rule in Estructura: Con F, DF o MR en cualquier pieza: MALO
+     */
+    public static function getInspectionSectionStatus(string $section, float $percentage, int $criticalCount = 0): array
+    {
+        if ($section === 'estructura' && $criticalCount > 0) {
+            return [
+                'label' => 'Malo',
+                'class' => 'estado-peligroso',
+                'color' => '#ff3933',
+                'is_critical' => true,
+            ];
+        }
+
+        if ($percentage >= 90) {
+            return [
+                'label' => 'Bueno',
+                'class' => 'estado-nuevas',
+                'color' => '#36d048',
+                'is_critical' => false,
+            ];
+        }
+
+        if ($percentage >= 60) {
+            return [
+                'label' => 'Aceptable',
+                'class' => 'estado-precaucion',
+                'color' => '#ffff33',
+                'is_critical' => false,
+            ];
+        }
+
+        return [
+            'label' => 'Malo',
+            'class' => 'estado-peligroso',
+            'color' => '#ff3933',
+            'is_critical' => false,
+        ];
+    }
 }

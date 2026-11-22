@@ -61,6 +61,7 @@
 - El código de peritaje es autogenerado con el formato `PRT-YYYYMMDD-XXXXXX`.
 - La eliminación de peritajes purga en cascada sus registros de inspección y los archivos físicos de fotografías en el servidor.
 - La migración de datos heredados requiere permisos de administrador (`admin@pritec.com`).
+- En Carrocería y Estructura, la calificación porcentual se calcula internamente por concepto técnico (escala: Bueno 90-100%, Aceptable 60-89%, Malo 0-59%). En Estructura, cualquier pieza con Fisurado (F), Deformidad Fuerte (DF) o Mala Reparación (MR) clasifica automáticamente la sección como MALO.
 
 ## Changelog
 - 2026-11-21: Análisis general de la arquitectura, módulos y modelos del sistema; creación de la memoria técnica docs/MEMORY.md.
@@ -68,3 +69,4 @@
 - 2026-11-21: Optimización del backend en peritajes y ajustes (transacciones atómicas DB, agregaciones SQL consolidadas, carga masiva de configuraciones/piezas, validaciones estrictas y corrección de búsqueda de clientes por identificación).
 - 2026-11-21: Optimización y blindaje de deploy.sh (control de errores pipefail, orden anti-502, permisos en uploads, storage:link, purga de OPcache y autodetección de contenedor).
 - 2026-11-21: Incorporación de cálculo de promedios e indicador visual en las barras de convenciones de llantas, amortiguadores y batería (PDF y vista de resumen).
+- 2026-11-22: Mapeo interno de porcentajes en Carrocería y Estructura según escala técnica oficial; adición de barra indicadora estilo Llantas y desglose de piezas en PDF y resumen web.
