@@ -62,6 +62,7 @@
 - La eliminación de peritajes purga en cascada sus registros de inspección y los archivos físicos de fotografías en el servidor.
 - La migración de datos heredados requiere permisos de administrador (`admin@pritec.com`).
 - En Carrocería y Estructura, la calificación porcentual se calcula internamente por concepto técnico (escala: Bueno 90-100%, Aceptable 60-89%, Malo 0-59%). En Estructura, cualquier pieza con Fisurado (F), Deformidad Fuerte (DF) o Mala Reparación (MR) clasifica automáticamente la sección como MALO.
+- En los pasos de inspección gráfica (Carrocería, Estructura y Chasis), se admite la modalidad "Sin afectaciones" (para vehículos nuevos o sin defectos), permitiendo avanzar sin ingresar piezas dañadas y asignando automáticamente un puntaje del 100.0% (Bueno) en el resumen y reporte PDF.
 
 ## Changelog
 - 2026-11-21: Análisis general de la arquitectura, módulos y modelos del sistema; creación de la memoria técnica docs/MEMORY.md.
@@ -70,3 +71,4 @@
 - 2026-11-21: Optimización y blindaje de deploy.sh (control de errores pipefail, orden anti-502, permisos en uploads, storage:link, purga de OPcache y autodetección de contenedor).
 - 2026-11-21: Incorporación de cálculo de promedios e indicador visual en las barras de convenciones de llantas, amortiguadores y batería (PDF y vista de resumen).
 - 2026-11-22: Mapeo interno de porcentajes en Carrocería y Estructura según escala técnica oficial; adición de barra indicadora estilo Llantas y desglose de piezas en PDF y resumen web.
+- 2026-11-26: Opción "Sin afectaciones" en inspecciones (pasos 3, 4 y 5); flexibilización del backend, switch en UI y ponderación al 100% (Bueno) en reportes web y PDF.

@@ -11,6 +11,7 @@ class InspectionConceptSeeder extends Seeder
     {
         $concepts = [
             // Common to all categories
+            ['name' => 'Sin afectaciones', 'category' => 'all', 'display_order' => 0],
             ['name' => 'Bueno', 'category' => 'all', 'display_order' => 1],
             ['name' => 'Buena reparación', 'category' => 'all', 'display_order' => 2],
             ['name' => 'Mala reparación', 'category' => 'all', 'display_order' => 3],

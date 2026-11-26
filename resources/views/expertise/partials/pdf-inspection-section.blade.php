@@ -130,13 +130,14 @@
                                 @endif
                             </div>
                         @empty
-                            <div style="width: 100%; padding: 0.8rem; text-align: center; color: #666; font-size: 10px; border: 1px dashed #ccc; border-radius: 4px;">
-                                No se registraron piezas con condición (Estado: Bueno 100%)
+                            <div style="width: 100%; padding: 0.8rem 0.5rem; text-align: center; border: 1px dashed #16a34a; border-radius: 4px; background-color: #f0fdf4;">
+                                <div style="font-weight: bold; color: #15803d; font-size: 10px;">✓ SIN AFECTACIONES</div>
+                                <div style="color: #166534; font-size: 8.5px; margin-top: 2px;">Sección en óptimas condiciones técnicas (100% Bueno)</div>
                             </div>
                         @endforelse
                     </div>
 
-                    @if($isPercentageSection && !empty($sectionData['pieces']))
+                    @if($isPercentageSection)
                     <!-- Fila de Promedio General -->
                     <div class="d-flex" style="gap: 0.2rem; margin-top: 2px;">
                         <div style="width: 56%; padding: 0.15rem 0.3rem; font-size: 8px; font-weight: bold; background-color: var(--main-color); border-radius: 4px; border: 1px solid #888;">

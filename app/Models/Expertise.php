@@ -314,6 +314,7 @@ class Expertise extends Model
 
         if ($section === 'carroceria') {
             return match (true) {
+                str_contains($normalized, 'sin afectaci') => 100,
                 str_contains($normalized, 'buena rep') => 85,
                 str_contains($normalized, 'mala rep') => 40,
                 str_contains($normalized, 'bien rep') => 95,
@@ -333,6 +334,7 @@ class Expertise extends Model
 
         if ($section === 'estructura') {
             return match (true) {
+                str_contains($normalized, 'sin afectaci') => 100,
                 str_contains($normalized, 'buena rep') => 70,
                 str_contains($normalized, 'mala rep') => 20,
                 str_contains($normalized, 'bien rep') => 80,

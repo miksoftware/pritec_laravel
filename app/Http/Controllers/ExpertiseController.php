@@ -241,25 +241,39 @@ class ExpertiseController extends Controller
 
     private function saveInspectionStep(Request $request, Expertise $expertise, string $section, int $step): void
     {
-        $piezas = $request->input('pieza_id', []);
-        $conceptos = $request->input('concepto_id', []);
+        $sinAfectaciones = $request->boolean('sin_afectaciones');
+        $observacionKey = 'observaciones_' . $section;
+        $observacion = $request->input($observacionKey);
+
+        // Si se indicó 'sin afectaciones' en el texto de observación también se asume sin afectaciones
+        if (!empty($observacion) && str_contains(mb_strtolower($observacion, 'UTF-8'), 'sin afectaci')) {
+            $sinAfectaciones = true;
+        }
 
         $inspections = [];
-        for ($i = 0; $i < count($piezas); $i++) {
-            if (!empty($piezas[$i]) && !empty($conceptos[$i])) {
-                $inspections[] = [
-                    'pieza_id' => $piezas[$i],
-                    'concepto_id' => $conceptos[$i],
-                ];
+        if (!$sinAfectaciones) {
+            $piezas = $request->input('pieza_id', []);
+            $conceptos = $request->input('concepto_id', []);
+
+            for ($i = 0; $i < count($piezas); $i++) {
+                if (!empty($piezas[$i]) && !empty($conceptos[$i])) {
+                    $inspections[] = [
+                        'pieza_id' => $piezas[$i],
+                        'concepto_id' => $conceptos[$i],
+                    ];
+                }
             }
         }
 
-        if (empty($inspections)) {
-            throw new \Exception('Debe agregar al menos una inspección de pieza');
+        if (empty($inspections) && !$sinAfectaciones) {
+            throw new \Exception('Debe agregar al menos una inspección de pieza o marcar la opción "Sin afectaciones"');
         }
 
-        $observacionKey = 'observaciones_' . $section;
-        $expertise->updateInspections($section, $inspections, $step, $request->input($observacionKey));
+        if ($sinAfectaciones && empty($observacion)) {
+            $observacion = 'Sin afectaciones';
+        }
+
+        $expertise->updateInspections($section, $inspections, $step, $observacion);
     }
 
     // ───── Step 6: Tires ─────
